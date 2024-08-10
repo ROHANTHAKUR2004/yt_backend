@@ -1,4 +1,4 @@
-import { loginUser,  logoutuser, registeruser } from "../controllers/user.controller.js";
+import { loginUser, logoutuser, registeruser } from "../controllers/user.controller.js";
 
 import  {Router} from "express";
 import {upload} from "../middlewares/multer.js"
