@@ -3,6 +3,7 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import { user } from "../models/user.model.js";
 import {uploadonCLoudnary} from '../utils/cloudnary.js'
 import {apiResponse} from '../utils/apiResponse.js'
+import jwt from "jsonwebtoken"
 
 
 const generateAccessTokenAndrefereshtoken = async (UserId) => {
@@ -11,7 +12,7 @@ const generateAccessTokenAndrefereshtoken = async (UserId) => {
       const accestoken =  User.generateAccessToken()
       const refereshtoken =  User.generateRefershToken()
 
-      User.refereshtoken = refereshtoken
+      User.refershtoken = refereshtoken
       await  User.save({validateBeforeSave : false})
 
      return {accestoken, refereshtoken}
@@ -94,7 +95,7 @@ const registeruser = asyncHandler( async (req, res) => {
 const loginUser = asyncHandler(async (req,res) =>{
   const { username,email,password} =  req.body
 
-  if(!username || !email){
+  if(!(username || email)){
     throw new ApiError(400, "Username or email is required")
   }
 
@@ -115,7 +116,7 @@ const loginUser = asyncHandler(async (req,res) =>{
 
   
   const loggiedinuser =  await user.findById(User._id).select(
-       "-password -refershToken"
+       "-password -refershtoken"
   )
 
   const options = {
@@ -142,7 +143,7 @@ const logoutuser =  asyncHandler(async (req,res) => {
    user.findByIdAndUpdate(
     req.User._id,{
       $set : {
-        refershToken : undefined
+        refershtoken : undefined
       }
     },{
       new : true
@@ -167,8 +168,55 @@ const logoutuser =  asyncHandler(async (req,res) => {
 })
 
 
+const refreshaccesstoken = asyncHandler( async (req,res) => {
+     const incomingrefreshtoken =   req.cookies.refereshtoken || req.body.refereshtoken
 
-export {registeruser, loginUser, logoutuser}
+     if(incomingrefreshtoken){
+      throw new ApiError(401, "unauthorized request")
+     }
+
+     try {
+       const decodedtoken =  jwt.verify(
+       incomingrefreshtoken,
+       process.env.REFERESH_TOKEN_SECRET
+      )
+ 
+      const User =  await user.findById(decodedtoken?._id)
+      if(!User){
+        throw new ApiError(401, "invalid refresh token")
+      }
+ 
+      if(incomingrefreshtoken !== User?.refershtoken){
+          throw new ApiError(401, "Refresh token is expired or used")
+      }
+ 
+      const options = {
+       httpOnly : true,
+       secure : true
+      }
+ 
+       const {accesstoken , newrefereshtoken} = await generateAccessTokenAndrefereshtoken(User._id)
+         
+       return res
+       .status(200)
+       .cookie("accesstoken", accesstoken, options)
+       .cookie("refreshtoken", newrefereshtoken, options)
+       .json(
+         new apiResponse(
+           200,
+           {accesstoken, refereshtoken : newrefereshtoken},
+           "access token refresh successfully"
+         )
+       )
+ 
+     } catch (error) {
+        throw new ApiError(401, error?.message || "invalid refresh token")
+     }
+    })
+
+
+
+export {registeruser, loginUser, logoutuser, refreshaccesstoken}
 
 //USER REGISTER STEPS
 // get user details from frontend or postman
