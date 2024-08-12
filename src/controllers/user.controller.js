@@ -5,7 +5,6 @@ import {uploadonCLoudnary} from '../utils/cloudnary.js'
 import {apiResponse} from '../utils/apiResponse.js'
 import jwt from "jsonwebtoken"
 
-
 const generateAccessTokenAndrefereshtoken = async (UserId) => {
   try {
       const User  = await user.findById(UserId)
@@ -23,7 +22,6 @@ const generateAccessTokenAndrefereshtoken = async (UserId) => {
      throw new ApiError(500, "something went wrong while gwnerating tokens")
   }
 }
-
 
 const registeruser = asyncHandler( async (req, res) => {
      
@@ -167,7 +165,6 @@ const logoutuser =  asyncHandler(async (req,res) => {
 
 })
 
-
 const refreshaccesstoken = asyncHandler( async (req,res) => {
      const incomingrefreshtoken =   req.cookies.refereshtoken || req.body.refereshtoken
 
@@ -215,8 +212,145 @@ const refreshaccesstoken = asyncHandler( async (req,res) => {
     })
 
 
+const changeCurrentPassword = asyncHandler(async (req,res) => {
+   const {oldpassword , newpassword} = req.body
 
-export {registeruser, loginUser, logoutuser, refreshaccesstoken}
+    const User = await user.findById(req.User?._id)
+    const ispasswordvalid = await User.isPasswordCorrect(oldpassword)
+    if(!ispasswordvalid){
+      throw new ApiError(400, "invalid old password")
+    }
+
+    User.password = newpassword
+    await User.save({validateBeforeSave : false})
+
+    return res
+    .status(200)
+    .json(new apiResponse (
+       200, {}, "password change successfully"
+    ))
+    })
+
+  const getcurrentuser = asyncHandler(async (req,res) => {
+       return res
+       .status(200)
+       .json( new apiResponse(
+        200,
+        req.User,
+        "USer fetched Successfully"
+       )) 
+      })
+
+  const updateaccountdetails = asyncHandler(async (req,res) => {
+      
+    const {username ,email} = req.body
+    
+    if(!username || !email){
+      throw new ApiError(400, "all fileds required")
+    }
+
+    const User  = await user.findByIdAndUpdate(
+      req.User?._id,
+       {
+          $set : {
+            fullname : fullname,
+            email : email
+          }
+       },{
+        new : true
+       }
+    ).select("-password")
+
+   
+    return res
+    .status(200)
+    .json(new apiResponse (
+       200, 
+       User,
+       "account details updated succesfully"
+    ))
+     
+
+
+  })
+
+ const updateavatar = asyncHandler(async (req,res) => {
+       const avatarLocalPath = req.file?.path
+       if(!avatarLocalPath){
+        throw new ApiError(400, "avatar file required")
+       }
+
+      const avatar =  await uploadonCLoudnary(avatarLocalPath)
+ 
+      if(!avatar.url){
+        throw new ApiError(400, "error while uploading avatar")
+      }
+
+      const User = await user.findByIdAndUpdate(
+        req.User?._id,
+        {
+          $set : {
+            avatar:  avatar.url
+          }
+        },{
+          new : true
+        }
+      ).select("-password")
+
+      return res
+      .status(200)
+      .json(new apiResponse (
+        200, User , "avatar image upadted succesfully"
+      ))
+ 
+    })
+
+
+    const updatecover = asyncHandler(async (req,res) => {
+      const coverLocalPath = req.file?.path
+      if(!coverLocalPath){
+       throw new ApiError(400, "cover file required")
+      }
+
+     const coverimage =  await uploadonCLoudnary(coverLocalPath)
+
+     if(!avatar.url){
+       throw new ApiError(400, "error while uploading cover")
+     }
+
+     const User =  await user.findByIdAndUpdate(
+       req.User?._id,
+       {
+         $set : {
+           coverimage:  coverimage.url
+         }
+       },{
+         new : true
+       }
+     ).select("-password")
+
+
+     return res
+      .status(200)
+      .json(new apiResponse (
+        200, User , "cover image upadted succesfully"
+      ))
+
+   })
+
+
+export {
+  registeruser,
+  loginUser,
+  logoutuser, 
+  refreshaccesstoken,
+  changeCurrentPassword,
+  getcurrentuser,
+  updateaccountdetails,
+  updateavatar,
+  updatecover,
+
+  }
 
 //USER REGISTER STEPS
 // get user details from frontend or postman
