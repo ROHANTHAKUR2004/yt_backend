@@ -33,7 +33,7 @@ router.route("/refreshtoken").post(
   refreshaccesstoken
 )
 
-router.route("/changepasword").post(
+router.route("/changepassword").post(
   verifyJWT,
    changeCurrentPassword
 )
