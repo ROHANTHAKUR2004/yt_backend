@@ -242,9 +242,9 @@ const getcurrentuser = asyncHandler(async (req,res) => {
 
 const updateaccountdetails = asyncHandler(async (req,res) => {
       
-    const {username ,email} = req.body
+    const {username ,email, fullname} = req.body
     
-    if(!username || !email){
+    if(!username || !email || !fullname){
       throw new ApiError(400, "all fileds required")
     }
 
