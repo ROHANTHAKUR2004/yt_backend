@@ -3,7 +3,7 @@ import { changeCurrentPassword, getcurrentuser, getUserChannelProfile, GetWatchh
 import  {Router} from "express";
 import {upload} from "../middlewares/multer.js"
 import { verifyJWT } from "../middlewares/auth.middleware.js";
-import multer from "multer";
+
 
 const router = Router();
 
@@ -56,7 +56,7 @@ router.route("/update/avatar").patch(
 
 router.route("/update/cover").patch(
   verifyJWT,
-  upload.single("cover"),
+  upload.single("coverimage"),
   updatecover
 )
 

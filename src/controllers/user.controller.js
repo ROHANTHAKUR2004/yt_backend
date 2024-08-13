@@ -8,20 +8,18 @@ import mongoose from "mongoose";
 
 const generateAccessTokenAndrefereshtoken = async (UserId) => {
   try {
-      const User  = await user.findById(UserId)
-      const accestoken =  User.generateAccessToken()
-      const refereshtoken =  User.generateRefershToken()
+    const User = await user.findById(UserId);
+    const accesstoken = User.generateAccessToken();
+    const refreshtoken = await User.generateRefershToken(); // Use 'await' here
 
-      User.refershtoken = refereshtoken
-      await  User.save({validateBeforeSave : false})
+    User.refreshtoken = refreshtoken;
+    await User.save({ validateBeforeSave: false });
 
-     return {accestoken, refereshtoken}
-
-
-
-  } catch (error) {
-     throw new ApiError(500, "something went wrong while gwnerating tokens")
-  }
+    return { accesstoken, refreshtoken };
+} catch (error) {
+    console.error("Error generating tokens:", error);
+    throw error;
+}
 }
 
 const registeruser = asyncHandler( async (req, res) => {
@@ -111,11 +109,11 @@ const loginUser = asyncHandler(async (req,res) =>{
     throw new ApiError(401, "password incorrect , please fill correct password")
   }
 
-   const {accestoken, refereshtoken} = await generateAccessTokenAndrefereshtoken(User._id)
+   const {accestoken, refreshtoken} = await generateAccessTokenAndrefereshtoken(User._id)
 
   
   const loggiedinuser =  await user.findById(User._id).select(
-       "-password -refershtoken"
+       "-password -refreshtoken"
   )
 
   const options = {
@@ -126,12 +124,12 @@ const loginUser = asyncHandler(async (req,res) =>{
   return res
   .status(200)
   .cookie("accesstoken", accestoken, options)
-  .cookie("refreshtoken", refereshtoken, options)
+  .cookie("refreshtoken", refreshtoken, options)
   .json(
     new apiResponse(
       200,
       {
-        user : loggiedinuser , accestoken, refereshtoken
+        user : loggiedinuser , accestoken, refreshtoken
       },
       "USer Logged in successfully "
     )
@@ -141,8 +139,8 @@ const loginUser = asyncHandler(async (req,res) =>{
 const logoutuser =  asyncHandler(async (req,res) => {
    user.findByIdAndUpdate(
     req.User._id,{
-      $set : {
-        refershtoken : undefined
+      $unset : {
+        refreshtoken : 1
       }
     },{
       new : true
@@ -167,8 +165,9 @@ const logoutuser =  asyncHandler(async (req,res) => {
 })
 
 const refreshaccesstoken = asyncHandler( async (req,res) => {
-     const incomingrefreshtoken =   req.cookies.refereshtoken || req.body.refereshtoken
-
+  const incomingrefreshtoken = req.cookies.refreshtoken || req.body.refreshtoken || req.header("Authorization")?.replace("Bearer ", "");
+  console.log("Incoming refresh token:", incomingrefreshtoken);
+  
      if(!incomingrefreshtoken){
       throw new ApiError(401, "unauthorized request")
      }
@@ -184,7 +183,7 @@ const refreshaccesstoken = asyncHandler( async (req,res) => {
         throw new ApiError(401, "invalid refresh token")
       }
  
-      if(incomingrefreshtoken !== User?.refershtoken){
+      if(incomingrefreshtoken !== User?.refreshtoken){
           throw new ApiError(401, "Refresh token is expired or used")
       }
  
@@ -193,16 +192,16 @@ const refreshaccesstoken = asyncHandler( async (req,res) => {
        secure : true
       }
  
-       const {accesstoken , newrefereshtoken} = await generateAccessTokenAndrefereshtoken(User._id)
+       const {accesstoken , newrefreshtoken} = await generateAccessTokenAndrefereshtoken(User._id)
          
        return res
        .status(200)
        .cookie("accesstoken", accesstoken, options)
-       .cookie("refreshtoken", newrefereshtoken, options)
+       .cookie("refreshtoken", newrefreshtoken, options)
        .json(
          new apiResponse(
            200,
-           {accesstoken, refereshtoken : newrefereshtoken},
+           {accesstoken, refereshtoken : newrefreshtoken},
            "access token refresh successfully"
          )
        )
