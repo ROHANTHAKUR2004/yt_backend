@@ -4,6 +4,7 @@ import { user } from "../models/user.model.js";
 import {uploadonCLoudnary} from '../utils/cloudnary.js'
 import {apiResponse} from '../utils/apiResponse.js'
 import jwt from "jsonwebtoken"
+import mongoose from "mongoose";
 
 const generateAccessTokenAndrefereshtoken = async (UserId) => {
   try {
@@ -410,6 +411,62 @@ const getUserChannelProfile =  asyncHandler(async (req,res) => {
 
    })
 
+const GetWatchhistory = asyncHandler(async (req,res) => {
+      const User =  await user.aggregate([
+        {
+          $match : {
+             _id : new mongoose.Types.ObjectId(req.User._id)
+          }
+        },
+        {
+          $lookup :{
+            from : "videos",
+            localField : "watchHistory",
+            foreignField : "_id",
+            as : "watchHistory",
+            pipeline : [
+              {
+                $lookup :{
+                  from : "users",
+                  localField: "owner",
+                  foreignField: "_id",
+                  as : "owner",
+                  pipeline :[
+                    {
+                     $project :{
+                         fullname : 1,
+                         username : 1,
+                         avatar : 1
+                     }
+                  }
+                ]
+                }
+              },
+              {
+                $addFields :{
+                  owner : {
+                      $first : "$owner"
+                  }
+                }
+              }
+            ]
+          }
+        }
+      ])
+
+      return res
+      .status(200)
+      .json(
+        new apiResponse (
+          200,
+          User[0].watchHistory,
+          "watch history succesfully"
+        )
+      )
+
+
+})  
+
 
 export {
   registeruser,
@@ -421,7 +478,8 @@ export {
   updateaccountdetails,
   updateavatar,
   updatecover,
-  getUserChannelProfile
+  getUserChannelProfile,
+  GetWatchhistory
 
   }
 
