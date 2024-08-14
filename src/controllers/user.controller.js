@@ -10,7 +10,7 @@ const generateAccessTokenAndrefereshtoken = async (UserId) => {
   try {
     const User = await user.findById(UserId);
     const accesstoken = User.generateAccessToken();
-    const refreshtoken = await User.generateRefershToken(); // Use 'await' here
+    const refreshtoken = await User.generateRefershToken();
 
     User.refreshtoken = refreshtoken;
     await User.save({ validateBeforeSave: false });
