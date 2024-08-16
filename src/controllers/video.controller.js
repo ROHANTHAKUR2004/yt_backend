@@ -3,6 +3,7 @@ import { video }from "../models/video.model.js"
 import { ApiError } from "../utils/apiError.js";
 import { apiResponse } from "../utils/apiResponse.js";
 import { uploadonCLoudnary } from "../utils/cloudnary.js";
+import { isValidObjectId } from "mongoose";
 
 
 const getallvideo = asyncHandler(async (req, res) => {
@@ -54,8 +55,6 @@ const getallvideo = asyncHandler(async (req, res) => {
 
 
 
-
-
 const publishVideo = asyncHandler(async (req,res) => {
     const {title , description} = req.body
 
@@ -70,8 +69,7 @@ const publishVideo = asyncHandler(async (req,res) => {
     const videoFile = await uploadonCLoudnary(localvideofilepath)
     const thumbnail =  await uploadonCLoudnary(localvideothumbnailpath)
 
-      console.log("videofile is " ,videoFile )
-      console.log("thumbfile is " ,thumbnail)
+    
 
       if(!videoFile.url || !thumbnail.url){
         throw new ApiError(400, "erroe while uploading videofile and thumbnail")
@@ -109,8 +107,54 @@ const publishVideo = asyncHandler(async (req,res) => {
 
 const getvideobyId = asyncHandler(async (req,res) => {
     const {videoId} = req.params
-      //TODO: get video by id
+    if(!isValidObjectId(videoId)){
+        throw new ApiError(500 , "Invalid video id")
+    }
+
+    const Video =  await video.findById(videoId);
+    if(!Video){
+        throw new ApiError(400, "video not found")
+    }
+
+    return res
+    .status(200)
+    .json(
+        new apiResponse(
+            200, 
+            Video,
+            "Succefully fetch video by id"
+        )
+    )
+
+
+
 })
+
+
+
+const getvideobytitle = asyncHandler(async (req, res) => {
+    const { title } = req.params;
+    if (!title) {
+        throw new ApiError(500, "Invalid video title");
+    }
+
+    const Video = await video.findOne({ title });
+
+    if (!Video) {
+        throw new ApiError(400, "Video not found");
+    }
+
+    return res
+    .status(200)
+    .json(
+        new apiResponse(
+            200, 
+            Video,
+            "Successfully fetched video by title"
+        )
+    );
+});
+
 
 const updateVideo = asyncHandler(async (req,res) => {
      const {videoId} = req.params
@@ -128,6 +172,7 @@ export {
     getallvideo,
     publishVideo,
     getvideobyId,
+    getvideobytitle,
     updateVideo,
     deletedvideo
 }
