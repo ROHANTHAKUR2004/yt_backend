@@ -53,8 +53,6 @@ const getallvideo = asyncHandler(async (req, res) => {
 });
 
 
-
-
 const publishVideo = asyncHandler(async (req,res) => {
     const {title , description} = req.body
 
@@ -101,10 +99,6 @@ const publishVideo = asyncHandler(async (req,res) => {
 })
 
 
-
-
-
-
 const getvideobyId = asyncHandler(async (req,res) => {
     const {videoId} = req.params
     if(!isValidObjectId(videoId)){
@@ -129,8 +123,6 @@ const getvideobyId = asyncHandler(async (req,res) => {
 
 
 })
-
-
 
 const getvideobytitle = asyncHandler(async (req, res) => {
     const { title } = req.params;
@@ -163,6 +155,28 @@ const updateVideo = asyncHandler(async (req,res) => {
 
 const deletedvideo = asyncHandler(async (req,res) => {
     const {videoId} = req.params
+    if(!isValidObjectId(videoId)){
+        throw new ApiError(500 , "Invalid video id")
+    }
+
+    const deleteVideo = await video.deleteOne({
+       _id : Object(`${videoId}`)
+    })
+  
+    if(!deleteVideo){
+        throw new ApiError(400, "something went whiled deleting video")
+}
+
+    return res
+    .status(200)
+    .json(
+        new apiResponse(
+            200, 
+            deleteVideo,
+            "Video deleted succesfully"
+        )
+    )
+
 })
 
 
