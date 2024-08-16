@@ -150,7 +150,36 @@ const getvideobytitle = asyncHandler(async (req, res) => {
 
 const updateVideo = asyncHandler(async (req,res) => {
      const {videoId} = req.params
+     const { title, description } = req.body
      //TODO: update video details like title, description, thumbnail
+    if(!title || !description){
+        throw new ApiError(500,  "all fileds required")
+    }
+
+    const Video = await video.findByIdAndUpdate(
+        videoId,
+        {
+            $set : {
+                title : title,
+                description : description
+            }
+        },
+        {
+            new : true
+        }
+    )
+
+    if(!Video){
+        throw new ApiError(500,  "video not found")
+    }
+
+
+    return res
+        .status(200)
+        .json(
+            new apiResponse(200, Video, "Video details updated succesfully.")
+        );
+
 })
 
 const deletedvideo = asyncHandler(async (req,res) => {
