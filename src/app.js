@@ -3,6 +3,7 @@ import cookieParser from "cookie-parser";
 import cors from 'cors'
 import userrouter from "./routes/user.routes.js";
 import videorouter from "./routes/video.router.js";
+import tweetrouter from "./routes/tweet.router.js";
 
 
 
@@ -33,6 +34,7 @@ app.use(cookieParser());
 
 app.use("/api/v1/users", userrouter)
 app.use("/api/v1/videos",videorouter)
+app.use("/api/v1/tweet", tweetrouter)
 
 
 

@@ -1,8 +1,8 @@
 import mongoose, { isValidObjectId } from "mongoose";
-import { tweet } from "../models/tweets.model";
-import { ApiError } from "../utils/apiError";
-import { apiResponse } from "../utils/apiResponse";
-import { asyncHandler } from "../utils/asyncHandler";
+import { tweet } from "../models/tweets.model.js";
+import { ApiError } from "../utils/apiError.js";
+import { apiResponse } from "../utils/apiResponse.js";
+import { asyncHandler } from "../utils/asyncHandler.js";
 
 const createtweet =  asyncHandler(async (req,res) => {
     const { content} = req.body
@@ -25,21 +25,62 @@ const createtweet =  asyncHandler(async (req,res) => {
 })
 
 
-
-
-
-
-
-
-
 const getusertweet =  asyncHandler(async (req,res) => {
     const {userId} = req.params
 
     if(!isValidObjectId(userId)){
         throw new ApiError(500, "INvalid user id")
     }
+
+    const Tweets = await tweet.aggregate([
+        {
+            $match :{
+                owner : new mongoose.Types.ObjectId(`${userId}`)
+            }
+        }, {
+            $lookup :{
+                from : "users",
+                localField : "owner",
+                foreignField : "_id",
+                as : "details",
+                pipeline : [
+                    {
+                        $project : {
+                            avatar : 1,
+                            fullname : 1,
+                            
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            $lookup :{
+                from : "likes",
+                localField : "id",
+                foreignField : " tweet",
+                as : "likesnum"
+            }
+        }, 
+        {
+            $addFields : {
+                details : {
+                    $first : "$details"
+                },
+                likes : {
+                    $size : "$likesnum"
+                }
+            }
+        }
+    ])
+
+    if(!Tweets.length){
+        throw new ApiError(500, "tweets not found")
+    }
    
-    
+    return res.status(200)
+         .json(new apiResponse(200, Tweets, "tweets fetched sucessfuly"))
+
 
 
 
