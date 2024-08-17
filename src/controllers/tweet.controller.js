@@ -87,19 +87,49 @@ const getusertweet =  asyncHandler(async (req,res) => {
 })
 
 
-
-
-
-
 const updatetweet =  asyncHandler(async (req,res) => {
-    
+    const {content} = req.body
+    const {tweetid} = req.params
+    if(!isValidObjectId(tweetid) || !content){
+        throw new ApiError(500, "Content is requird && invalid tweet id")   
+    }
+
+    const Tweet = await tweet.findByIdAndUpdate(
+        tweetid,
+        {
+            $set : {
+                content
+            }
+        }, {
+            new : true
+        }
+    )
+
+    if(!Tweet){
+        throw new ApiError(500, "something goes wrong while updating tweet")
+    }
+
+    return res.status(200)
+    .json(new apiResponse(200, Tweet, "Sucessfully updated tweet" ))
+
 })
 
 
 
 
 const deletetweet =  asyncHandler(async (req,res) => {
-    
+    const {tweetid} = req.params
+    if(!isValidObjectId(tweetid)){
+        throw new ApiError(500, " invalid tweet id")   
+    }
+
+    const Tweet = await tweet.findByIdAndDelete(tweetid)
+    if(!Tweet){
+        throw new ApiError(500, "something goes wrong while deleting tweet")
+    }
+    return res.status(200)
+    .json(new apiResponse(200, Tweet, "Sucessfully deleted tweet" ))
+
 })
 
 
