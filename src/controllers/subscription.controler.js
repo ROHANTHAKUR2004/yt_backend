@@ -2,6 +2,7 @@ import { asyncHandler } from "../utils/asyncHandler";
 
 const toggleSubscription = asyncHandler(async (req,res) => {
     const {channelId} = req.params
+    
 })
 
 const getUserChannelSubscription = asyncHandler(async (req,res) => {

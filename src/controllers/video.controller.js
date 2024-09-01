@@ -205,7 +205,26 @@ const deletedvideo = asyncHandler(async (req,res) => {
             "Video deleted succesfully"
         )
     )
+})
 
+const tooglepublicstatus = asyncHandler(async (req,res) => {
+     const {videoId} = req.params;
+
+     if(!isValidObjectId(videoId)){
+        throw new ApiError(401, "invalid video id")
+     }
+
+     const response = await video.findById(videoId);
+     if(!response){
+        throw new ApiError(401 , "video not found")
+     }
+
+     response.isPublished = !response.isPublished
+     await response.save({validateBeforeSave : false})
+
+     return res
+     .status(200)
+     .json(new apiResponse(200, response, "published togged succesfullly"))
 })
 
 
@@ -217,5 +236,6 @@ export {
     getvideobyId,
     getvideobytitle,
     updateVideo,
-    deletedvideo
+    deletedvideo,
+    tooglepublicstatus
 }
