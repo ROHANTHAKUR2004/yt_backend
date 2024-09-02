@@ -1,4 +1,5 @@
-const { Schema, default: mongoose } = require("mongoose");
+import mongoose, { Schema } from "mongoose";
+
 
 const playlistScehema = new Schema(
 {
