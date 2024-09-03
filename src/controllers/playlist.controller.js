@@ -1,9 +1,9 @@
 
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/apiError.js";
-import {playlist} from '../models/playlist.model.js'
+import {playlist } from '../models/playlist.model.js'
 import { apiResponse } from "../utils/apiResponse.js";
-import mongoose from "mongoose";
+import mongoose, { isValidObjectId } from "mongoose";
 
 
 
@@ -45,6 +45,38 @@ const getplaylistbyId = asyncHandler(async (req,res) => {
 
 const addVideotoplaylist = asyncHandler(async (req,res) => {
     const {playlistId, videoId} = req.params;
+    if(isValidObjectId(!playlistId) && isValidObjectId(!videoId) ){
+        throw new ApiError(401, "playlist id and videoid  required")
+    }
+
+    const Playlist = await playlist.findById(`${playlistId}`)
+    if(!Playlist){
+        throw new ApiError(401, "unable to find playlists")
+    }
+
+    const response = await playlist.findByIdAndUpdate(
+        playlistId,
+        {
+            $addToSet :{
+                videos : videoId
+            }
+        },
+        {
+            new : true
+        }
+    )
+
+    if(!response){
+        throw new ApiError(401, "unable make playlist ,something went wrong")
+    }
+
+
+    return res
+    .status(200)
+    .json(
+        new apiResponse(200 , response, "video add to playlist succesfully")
+    )
+
 })
 
 const removevideoFromplaylist = asyncHandler(async (req,res) => {
