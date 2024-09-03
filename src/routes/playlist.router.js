@@ -2,8 +2,10 @@ import { Router } from "express";
 import { verifyJWT } from "../middlewares/auth.middleware.js";
 import { addVideotoplaylist, 
     createplaylist, 
+    deleteplaylist, 
     getplaylistbyId,
-    getuserplaylist} from "../controllers/playlist.controller.js";
+    getuserplaylist,
+    removevideoFromplaylist} from "../controllers/playlist.controller.js";
 
 const router = Router();
 router.use(verifyJWT)
@@ -12,7 +14,10 @@ router.use(verifyJWT)
 
 router.route("/").post(createplaylist)
 router.route("/add/:videoId/:playlistId").patch(addVideotoplaylist)
-router.route("/:playlistId").get(getplaylistbyId)
+router.route("/:playlistId")
+.get(getplaylistbyId)
+.delete(deleteplaylist)
 router.route("/user/:userId").get(getuserplaylist)
+router.route("/remove/:videoId/:playlistId").patch(removevideoFromplaylist)
 
 export default router;
