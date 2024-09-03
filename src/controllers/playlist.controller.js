@@ -37,6 +37,41 @@ const createplaylist = asyncHandler(async (req,res) => {
 
 const getuserplaylist = asyncHandler(async (req,res) => {
     const {userId} = req.params
+    if(!isValidObjectId(userId)){
+        throw new ApiError(401, "invalid  required")
+    }
+
+    const response = await playlist.aggregate([
+        {
+            $match : {
+                owner : new mongoose.Types.ObjectId(`${userId}`)
+            }
+        },
+        {
+            $lookup :{
+                from :"videos",
+                localField : "videos",
+                foreignField : "_id",
+                 as : "details", 
+                 pipeline : [
+                    {
+                        $project : {
+                            thumbnail : 1
+                        }
+                    }
+                 ]
+            }
+        }
+    ])
+
+    return res
+    .status(200)
+    .json(
+        new apiResponse(200 , response, "user palylist fetched  succesfully")
+    )
+
+
+
 })
 
 const getplaylistbyId = asyncHandler(async (req,res) => {
@@ -44,11 +79,6 @@ const getplaylistbyId = asyncHandler(async (req,res) => {
     if(!isValidObjectId(playlistId)){
         throw new ApiError(401, "playlist id required")
     }
-
-    // const response = await playlist.findById(playlistId)
-    // if(!response){
-    //     throw new ApiError(401, "unable to find playlist")
-    // }
 
     const Playlist = await playlist.aggregate([
         {
@@ -104,7 +134,7 @@ const getplaylistbyId = asyncHandler(async (req,res) => {
 const addVideotoplaylist = asyncHandler(async (req,res) => {
     const {playlistId, videoId} = req.params;
     if(!isValidObjectId(playlistId) && !isValidObjectId(videoId) ){
-        throw new ApiError(401, "playlist id and videoid  required")
+        throw new ApiError(401, "invalid playlist id and videoid  required")
     }
 
     const Playlist = await playlist.findById(`${playlistId}`)
