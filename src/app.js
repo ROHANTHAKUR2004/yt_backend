@@ -6,7 +6,7 @@ import videorouter from "./routes/video.router.js";
 import tweetrouter from "./routes/tweet.router.js";
 import subscriberroute from "./routes/subscriber.routes.js"
 import Playlistrouter from "./routes/playlist.router.js"
-
+import likerouter from "./routes/likes.router.js"
 
 const app = express();
 
@@ -37,7 +37,7 @@ app.use("/api/v1/videos",videorouter)
 app.use("/api/v1/tweet", tweetrouter)
 app.use("/api/v1/subscriptions", subscriberroute)
 app.use("/api/v1/playlist", Playlistrouter)
-
+app.use("/api/v1/likes", likerouter)
 
 
 
