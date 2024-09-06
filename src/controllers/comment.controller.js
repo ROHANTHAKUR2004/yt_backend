@@ -7,7 +7,7 @@ const getvideoComments = asyncHandler(async (req,res) => {
 })
 
 const addcomment = asyncHandler(async (req,res) => {
-    
+    // add comment todo
 })
 
 
