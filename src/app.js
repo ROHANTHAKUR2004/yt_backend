@@ -8,6 +8,7 @@ import subscriberroute from "./routes/subscriber.routes.js"
 import Playlistrouter from "./routes/playlist.router.js"
 import likerouter from "./routes/likes.router.js"
 import dashboardrouter from "./routes/dasborad.router.js"
+import commentrouter from "./routes/comment.router.js"
 const app = express();
 
 app.use(cors({
@@ -39,6 +40,7 @@ app.use("/api/v1/subscriptions", subscriberroute)
 app.use("/api/v1/playlist", Playlistrouter)
 app.use("/api/v1/likes", likerouter)
 app.use("/api/v1/dashboard", dashboardrouter)
+app.use("/api/v1/comments", commentrouter)
 
 
 

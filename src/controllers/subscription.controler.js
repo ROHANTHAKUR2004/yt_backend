@@ -75,7 +75,7 @@ const getSubscriptionChannels = asyncHandler(async (req,res) => {
                 $and : [
                     {
                         channel : new mongoose.Types.ObjectId(`${channelId}`),
-                        subscriber : new mongoose.Types.ObjectId(`${req.User._id}`)
+                        subscriber  : new mongoose.Types.ObjectId(`${req.User._id}`)
                     }
                 ]
             }
